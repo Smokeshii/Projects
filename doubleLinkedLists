@@ -1,0 +1,560 @@
+#include <iostream>
+
+using namespace std;
+
+// Data Class : Holds all the data that goes inside the Node
+class Data {
+public:
+    int value;
+    string name;
+    Data(int value, string name) {
+        this->value = value;
+        this->name = name;
+    }
+    void print() {
+
+        cout << value << " ";
+    }
+};
+
+// Node Class : Node for the LinkedList
+template <typename T> class Node {
+public:
+    T *value;
+    Node<T> *next;
+    Node<T> *prev;
+    Node(T *value) {
+        this->value = value;
+        next = nullptr;
+        prev = nullptr;
+    }
+    void print() { value->print(); }
+};
+
+// LinkedList Class : Container for Nodes
+template <typename T> class DoubleLinkedList {
+private:
+    Node<T> *head;
+    Node<T> *tail;
+    int length;
+
+public:
+    // Constructor
+    DoubleLinkedList(T *value) {
+        Node<T> *newNode = new Node<T>(value);
+        head = newNode;
+        tail = newNode;
+        length = 1;
+    }
+
+    // Destructor
+    ~DoubleLinkedList() {
+        Node<T> *temp = head;
+        while (head) {
+            head = head->next;
+            delete temp;
+            temp = head;
+        }
+    }
+    /* removes multiples by checking the current value with the
+    next value and if they are the same, the temp created for
+     the first will be deleted. Loops through the whole list until all matching numbers are gone
+    */
+    void removeMultiples() {
+        Node<T> *current = head;
+
+        while (current != nullptr && current->next != nullptr) {
+            if (current->value->value == current->next->value->value) {
+                Node<T> *temp = current->next;
+                current->next = current->next->next;
+                if (current->next != nullptr) {
+                    current->next->prev = current;
+                }
+                delete temp;
+                length--;
+            } else {
+                current = current->next;
+            }
+        }
+    }
+/* counts the amount of times a repeating value shows up in the list, takes the head and checks with the value of the next using -> value and if they are the same, the
+ * repeating number counter increases. Loops through the whole list*/
+    int countMultiples(int value){
+    int digit = 0;
+    Node<T> *current = head;
+    while (current != nullptr) {
+        if (current -> value -> value == value) {
+            digit++;
+        }
+        current = current -> next;
+    }
+    return digit;
+    }
+
+    /* Splits the linked list into two separate ones in half and uses the temp
+     * head and tail to track the nodes, splits the LL,  it adjusts the head and tail pointers
+     * to the new lists and then connects the new lists to the end of the old list*/
+    void headTailSplit(){
+        int split = length/2;
+        Node<T> *temp_tail = head;
+        Node<T> *temp_head = nullptr;
+        for (int i = 1; i<split; i++) {
+            temp_tail = temp_tail->next;
+        }
+            temp_head=temp_tail -> next;
+            temp_tail -> next = nullptr;
+            temp_head -> prev = nullptr;
+
+            head -> prev = tail;
+            tail ->next = head;
+
+            head = temp_head;
+            tail = temp_tail;
+            return head;
+
+        }
+        void reverseList(){
+        if (length <= 1) {
+            return;
+        }
+        Node<T> *current = head;
+        Node<T> *temp = nullptr;
+
+        Node<T> *temp_head = head;
+        head = tail;
+        tail = temp_head;
+
+        while(current != nullptr) {
+            temp = current-> prev;
+            current -> prev = current -> next;
+            current -> next = temp;
+            current = current -> prev;
+        }
+    }
+
+    void sortList() {
+        head = mergeSort(head);
+    }
+    Node<T> *mergeSort(Node<T> *head) {
+        if (head == nullptr || head->next == nullptr) {
+            return head;
+        }
+        Node<T> *middle = findMiddle(head);
+        Node<T> *nextTomiddle = middle->next;
+        middle->next = nullptr;
+
+        Node<T> *left = mergeSort(head);
+        Node<T> *right = mergeSort(nextTomiddle);
+        return merge(left, right);
+    }
+    Node<T>* findMiddle(Node<T>* head) {
+        if (head == nullptr) {
+            return nullptr;
+        }
+Node<T> *slow = head;
+Node<T> *fast = head;
+
+while (fast ->next != nullptr && fast -> next->next != nullptr) {
+    slow = slow->next;
+    fast = fast->next->next;
+}
+return slow;
+    }
+    Node<T> *merge(Node<T> *left, Node<T> *right){
+        Node<T> *result = nullptr;
+        if (left == nullptr) {
+            return right;
+        }
+        if (right == nullptr) {
+            return left;
+        }
+        if ( left-> value->value <= right -> value -> value) {
+            result = left;
+            result -> next = merge (left -> next, right);
+        }
+        else {
+            result = right;
+            result -> next = merge(left, right -> next);
+        }
+        return result;
+    }
+
+    void printList() {
+        Node<T> *temp = head;
+        while (temp != nullptr) {
+            temp->print();
+            temp = temp->next;
+        }
+    }
+
+    // get and set
+    Node<T> *getHead() {
+        if (head == nullptr) {
+            cout << "Head: nullptr" << endl;
+        } else {
+            cout << "Head: " << head->value << endl;
+        }
+        return head;
+    }
+
+    Node<T> *getTail() {
+        if (tail == nullptr) {
+            cout << "Tail: nullptr" << endl;
+        } else {
+            cout << "Tail: " << tail->value << endl;
+        }
+        return tail;
+    }
+
+    int getLength() {
+        cout << "Length: " << length << endl;
+        return length;
+    }
+
+    Node<T> *get(int index) {
+        if (index < 0 || index >= length)
+            return nullptr;
+        Node<T> *temp = head;
+        for (int i = 0; i < index; ++i) {
+            temp = temp->next;
+        }
+        return temp;
+    }
+
+    bool set(int index, T *value) {
+        Node<T> *temp = get(index);
+        if (temp) {
+            temp->value = value;
+            return true;
+        }
+        return false;
+    }
+
+    // All insert methods
+    // Insert at end
+    void append(T *value) {
+        Node<T> *newNode = new Node<T>(value);
+        if (length == 0) {
+            head = newNode;
+            tail = newNode;
+        } else {
+            tail->next = newNode;
+            newNode->prev = tail;
+            tail = newNode;
+        }
+        length++;
+    }
+
+    // Insert at beginning
+/* This takes the newNode and checks for the length and if it is more than 0
+ * then it makes the newNode input into being the head and makes the previous head next in line */
+    void prepend(T *value) {
+        Node<T> *newNode = new Node<T>(value);
+        if (length == 0) {
+            head = newNode;
+            tail = newNode;
+        } else {
+            newNode->next = head;
+            head->prev = newNode;
+            head = newNode;
+        }
+        length++;
+    }
+
+    // Insert at Index
+/*This inserts a user Input number into the list by taking in the input of the
+ * desired index and the input of desired value to be inserted and will make the new head
+ * the new number at the selected point, moves the number previously there back and increases the length of the list
+ * to ensure nothing is lost*/
+    bool insert(int index, T *value) {
+        if (index < 0 || index > length)
+            return false;
+        if (index == 0) {
+            prepend(value);
+            return true;
+        }
+        if (index == length) {
+            append(value);
+            return true;
+        }
+        Node<T> *newNode = new Node<T>(value);
+        Node<T> *prev1 = get(index - 1);
+        Node<T> *next1 = prev1->next;
+        newNode->prev = prev1;
+        newNode->next = next1;
+        prev1->next = newNode;
+        next1->prev = newNode;
+        length++;
+        return true;
+    }
+
+    // All delete Methods
+    //makes the original head a placeholder, makes the new head the next value
+    //then deletes the value which is held by the placeholder and reduces the length of the list.
+    void deleteAtHead(){
+        if (head != NULL) {
+            Node<T>*curr=head;
+            head=head -> next;
+            delete curr;
+            curr = NULL;
+        }
+    }
+    //makes the original tail a placeholder, makes the new tail the previous value
+    //then deletes the value which is held by the placeholder and reduces the length of the list.
+    void deleteTail() {
+        if (tail != NULL) {
+            Node<T>*curr = tail;
+            tail = tail -> prev;
+            if (tail != NULL) {
+                tail->next = NULL;
+            }
+            else {
+                head = NULL;
+            }
+
+            delete curr;
+            curr = NULL;
+            length --;
+        }
+    }
+
+    /*Takes the list, assigns the head to a current usage node and then
+     * checks the current node and makes it a temporary value, checks if its even or odd
+     * appends at the tail, if not it keeps it in place, then takes the first half and makes it the even list
+     * and other half gets put into the odds list*/
+    void splitListEvenOdd(){
+        Node<T> *eHead = nullptr;
+        Node<T> *eTail = nullptr;
+        Node<T> *oHead = nullptr;
+        Node<T> *oTail = nullptr;
+Node<T> *current = head;
+
+while (current != nullptr) {
+    Node<T> *temp = current;
+    current = current -> next;
+    temp -> next = nullptr;
+
+    if (temp -> value -> value % 2 == 0) {
+        if (eHead == nullptr) {
+            eHead = eTail = temp;
+        } else {
+            eTail->next = temp;
+            temp -> prev = eTail;
+            eTail = temp;
+        }
+    }
+    else {
+        if( oHead == nullptr) {
+            oHead = oTail = temp;
+        } else {
+            oTail->next = temp;
+            oTail -> prev = oTail;
+            oTail = temp;
+
+        }
+        }
+}
+cout << "Evens:" << endl;
+Node<T> *tempEven = eHead;
+while (tempEven != nullptr) {
+    tempEven -> print();
+    tempEven = tempEven -> next;
+}
+cout << endl;
+        cout << "Odds:" << endl;
+        Node<T> *tempOdd = oHead;
+        while (tempOdd != nullptr) {
+            tempOdd -> print();
+            tempOdd = tempOdd -> next;
+        }
+}
+//Deletes the value at index if at edges. If not it makes a temporary value
+//checks the nodes on both sides of the temp, makes those the prev and next
+// and allows for the floating temp node to be deleted, then shortens the list size
+    void deleteAtIndex(int index){
+        Node<T> *current = head;
+        Node<T>  *previous = head;
+        if (index == 0) {
+            deleteAtHead();
+            return;
+        }
+       else if (index < 0 || index >= length){
+            cout << "Index is not valid" << endl;
+        }
+       else if ( index == length -1){
+            deleteTail();
+            return;
+        }
+Node<T> *temp = get(index);
+        Node<T> *prevNode = temp -> prev;
+        Node<T> *nextNode = temp -> next;
+        prevNode -> next = nextNode;
+        prevNode -> prev = prevNode;
+        delete temp;
+        length--;
+
+    }
+
+    // Write DeleteHead, DeleteTail & DeleteAtIndex here
+};
+/* This creates a list using DoubleLinkedList and the linked list being created by the user
+ * which takes in values input by the user and aligns it with the doubleLinkedList method to create
+ * the user made linked list. It will take inputs until the number -33 is put which exits the loop.
+ */
+bool createAList(DoubleLinkedList<Data>*& ll1) {
+    int value;
+    cout << "Enter the starting value" << " and the rest of the values for the list. Enter -33 to finish.\n";
+    cin >> value;
+    if (value == -33)
+        return false;
+    Data *d1 = new Data(value, "name");
+    ll1 = new DoubleLinkedList<Data>(d1);
+    while (true) {
+        cin >> value;
+        if (value == -33) {
+            break;
+        }
+        Data *newData = new Data(value, "name");
+        ll1->append(newData);
+    }
+    return true;
+}
+// Main Program
+
+int main() {
+    DoubleLinkedList<Data> *ll1 = nullptr;
+    int selection;
+    while (true) {
+        cout << "This is the menu for your data. Type the number to get the action." << endl;
+        cout << "1. Create the list." << endl << "2. Delete a List." << endl << "3. Insert at Head." << endl << "4. Insert at Tail." << endl << "5. Insert at Index." << endl << "6. Delete at Head." << endl << "7. Delete at Tail." << endl << "8. Delete at Index." << endl << "9. Reverse List." << endl << "10. Sort List." << endl << "11. Count Multiples." << endl << "12. Delete Multiples." << endl << "13. Split List Even Odd." << endl << "14. Exit" << endl;
+        cin >> selection;
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        //this lets userInput selection to select a value that is listed,
+        // when ran it will run the case.
+        switch (selection) {
+            case 1: {
+                //checks if the list is null, if not it runs create a list and creates the list using user input
+                if (ll1 != nullptr) {
+                    delete ll1;
+                }
+                bool finished = createAList(ll1);
+                if (finished) {
+                    cout << "List has been made." << endl;
+                } else {
+                    cout << "List did not make." << endl;
+                }
+                cin.ignore();
+                break;
+            }
+            case 2: {
+                //Deletes the list outright and makes it hold null to prevent any problems
+                delete ll1;
+                ll1 = nullptr;
+                break;
+            }
+            case 3: {
+                //inserts a new head that is chosen by the user
+                int index;
+                cout << "choose a number to insert at the start" << endl;
+                cin >> index;
+                Data *newData = new Data(index, "name");
+                ll1->prepend(newData);
+                cout << "Put in at the head." << endl;
+                ll1 ->printList();
+                break;
+            }
+            case 4: {
+                int index;
+                cout << "choose a number to insert at the end" << endl;
+                cin >> index;
+                Data *newData = new Data(index, "name");
+                ll1->append(newData);
+                cout << "Put in at the tail." << endl;
+                ll1 -> printList();
+                break;
+            }
+            case 5: {
+                int index;
+                cout << "Put in the index of where you want it" << endl;
+                cin >> index;
+                int value;
+                cout << "Enter the value you want to add" << endl;
+                cin >> value;
+
+                if (ll1->insert(index, new Data(value, "name"))) {
+                    cout << "It worked" << endl;
+                } else {
+                    cout << "It didn't work" << endl;
+                }
+                ll1 -> printList();
+                break;
+            }
+            case 6: {
+                ll1->deleteAtHead();
+                cout << "Head has been deleted." << endl;
+                ll1 -> printList();
+                break;
+
+            }
+            case 7: {
+                ll1->deleteTail();
+                cout << "tail has been deleted." << endl;
+                ll1 -> printList();
+                break;
+            }
+            case 8: {
+                int index;
+                cin >> index;
+                ll1->deleteAtIndex(index);
+                cout << "deleted at index: " << index << endl;
+                ll1 -> printList();
+                break;
+            }
+            case 9: {
+                ll1->reverseList();
+                cout << "Your list is now reversed." << endl;
+                ll1->printList();
+                break;
+            }
+            case 10: {
+                ll1->sortList();
+                cout << "List has been sorted." << endl;
+                ll1 -> printList();
+                break;
+            }
+            case 11: {
+                int value;
+                cout << "Enter the value you want to count multiple of: ";
+                cin >> value;
+                int amount = ll1->countMultiples(value);
+                ll1 -> printList();
+                cout << "counted the amount of duplicates of " << value << ". It occurred " << amount << " times." << endl;
+                break;
+            }
+            case 12: {
+                ll1->removeMultiples();
+                cout << "duplicates have been removed" << endl;
+                ll1 -> printList();
+                break;
+            }
+            case 13: {
+                ll1->splitListEvenOdd();
+                cout << endl << "split the list into both an even and an odd list" << endl;
+                break;
+            }
+            case 14: {
+                cout << "Program Exited" << endl;
+                delete ll1;
+                return 0;
+            }
+            default: {
+                cout << "Try an option that works." << endl;
+            }
+        }
+    }
+
+    return 0;
+}
+
+
